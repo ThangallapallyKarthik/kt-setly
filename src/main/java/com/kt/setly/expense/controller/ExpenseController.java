@@ -3,6 +3,7 @@ package com.kt.setly.expense.controller;
 import com.kt.setly.common.response.ApiResponse;
 import com.kt.setly.expense.dto.CreateExpenseRequest;
 import com.kt.setly.expense.dto.ExpenseResponse;
+import com.kt.setly.expense.dto.UpdateExpenseRequest;
 import com.kt.setly.expense.service.ExpenseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,6 +29,29 @@ public class ExpenseController {
                 .success(true)
                 .message("Expense created successfully")
                 .data(expenseService.createExpense(groupId, request))
+                .build();
+    }
+
+    @PutMapping("/{expenseId}")
+    @Operation(summary = "Update expense")
+    public ApiResponse<ExpenseResponse> updateExpense(@PathVariable Long groupId,
+                                                      @PathVariable Long expenseId,
+                                                      @Valid @RequestBody UpdateExpenseRequest request) {
+        return ApiResponse.<ExpenseResponse>builder()
+                .success(true)
+                .message("Expense updated successfully")
+                .data(expenseService.updateExpense(groupId, expenseId, request))
+                .build();
+    }
+
+    @DeleteMapping("/{expenseId}")
+    @Operation(summary = "Delete expense")
+    public ApiResponse<Void> deleteExpense(@PathVariable Long groupId,
+                                           @PathVariable Long expenseId) {
+        expenseService.deleteExpense(groupId, expenseId);
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .message("Expense deleted successfully")
                 .build();
     }
 

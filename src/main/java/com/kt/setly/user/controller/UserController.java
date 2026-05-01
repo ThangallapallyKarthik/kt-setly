@@ -2,6 +2,7 @@ package com.kt.setly.user.controller;
 
 import com.kt.setly.common.response.ApiResponse;
 import com.kt.setly.user.dto.LoginRequest;
+import com.kt.setly.user.dto.LoginResponse;
 import com.kt.setly.user.dto.RegisterUserRequest;
 import com.kt.setly.user.dto.UserResponse;
 import com.kt.setly.user.service.UserService;
@@ -28,8 +29,8 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "User registered successfully"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid input")
     })
-    public ApiResponse<UserResponse> register(@Valid @RequestBody RegisterUserRequest request) {
-        return ApiResponse.<UserResponse>builder()
+    public ApiResponse<LoginResponse> register(@Valid @RequestBody RegisterUserRequest request) {
+        return ApiResponse.<LoginResponse>builder()
                 .success(true)
                 .message("User registered successfully")
                 .data(userService.register(request))
@@ -38,8 +39,8 @@ public class UserController {
 
     @PostMapping("/login")
     @Operation(summary = "Login user")
-    public ApiResponse<UserResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ApiResponse.<UserResponse>builder()
+    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ApiResponse.<LoginResponse>builder()
                 .success(true)
                 .message("Login successful")
                 .data(userService.login(request))

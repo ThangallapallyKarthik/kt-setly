@@ -3,6 +3,7 @@ package com.kt.setly.settlement.controller;
 import com.kt.setly.common.response.ApiResponse;
 import com.kt.setly.settlement.dto.CreateSettlementRequest;
 import com.kt.setly.settlement.dto.SettlementResponse;
+import com.kt.setly.settlement.dto.SettlementSuggestion;
 import com.kt.setly.settlement.service.SettlementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +39,16 @@ public class SettlementController {
                 .success(true)
                 .message("Settlements fetched successfully")
                 .data(settlementService.getSettlements(groupId))
+                .build();
+    }
+
+    @GetMapping("/suggestions")
+    @Operation(summary = "Get suggested settlements to minimize transactions")
+    public ApiResponse<List<SettlementSuggestion>> getSuggestedSettlements(@PathVariable Long groupId) {
+        return ApiResponse.<List<SettlementSuggestion>>builder()
+                .success(true)
+                .message("Settlement suggestions fetched successfully")
+                .data(settlementService.getSuggestedSettlements(groupId))
                 .build();
     }
 }

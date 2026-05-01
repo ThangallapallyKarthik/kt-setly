@@ -2,7 +2,9 @@ package com.kt.setly.user.service;
 
 import com.kt.setly.common.exception.BadRequestException;
 import com.kt.setly.common.exception.ResourceNotFoundException;
+import com.kt.setly.security.JwtTokenProvider;
 import com.kt.setly.user.dto.LoginRequest;
+import com.kt.setly.user.dto.LoginResponse;
 import com.kt.setly.user.dto.RegisterUserRequest;
 import com.kt.setly.user.dto.UserResponse;
 import com.kt.setly.user.entity.User;
@@ -21,8 +23,9 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public UserResponse register(RegisterUserRequest request) {
+    public LoginResponse register(RegisterUserRequest request) {
         if (userRepository.existsByEmailIgnoreCase(request.email())) {
             throw new BadRequestException("Email already exists");
         }
@@ -32,9 +35,6 @@ public class UserService {
                 .email(request.email().trim().toLowerCase())
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .displayName(request.displayName().trim())
-//                .defaultCurrency(request.defaultCurrency().trim().toUpperCase())
-//                .locale(request.locale().trim())
-//                .countryCode(request.countryCode().trim().toUpperCase())
                 .defaultCurrency(request.defaultCurrency() != null
                         ? request.defaultCurrency().trim().toUpperCase()
                         : "USD")
@@ -49,10 +49,13 @@ public class UserService {
                 .updatedAt(now)
                 .build();
 
-        return map(userRepository.save(user));
+        User savedUser = userRepository.save(user);
+        String token = jwtTokenProvider.generateToken(savedUser.getId(), savedUser.getEmail());
+        
+        return mapToLoginResponse(savedUser, token);
     }
 
-    public UserResponse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmailIgnoreCase(request.email())
                 .orElseThrow(() -> new BadRequestException("Invalid email or password"));
 
@@ -60,7 +63,8 @@ public class UserService {
             throw new BadRequestException("Invalid email or password");
         }
 
-        return map(user);
+        String token = jwtTokenProvider.generateToken(user.getId(), user.getEmail());
+        return mapToLoginResponse(user, token);
     }
 
     public User getUserEntity(Long userId) {
@@ -85,6 +89,19 @@ public class UserService {
                 user.getLocale(),
                 user.getCountryCode(),
                 user.getStatus()
+        );
+    }
+
+    private LoginResponse mapToLoginResponse(User user, String token) {
+        return new LoginResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getDisplayName(),
+                user.getDefaultCurrency(),
+                user.getLocale(),
+                user.getCountryCode(),
+                user.getStatus(),
+                token
         );
     }
 }

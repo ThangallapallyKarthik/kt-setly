@@ -3,6 +3,7 @@ package com.kt.setly.group.controller;
 import com.kt.setly.common.response.ApiResponse;
 import com.kt.setly.group.dto.AddGroupMemberRequest;
 import com.kt.setly.group.dto.CreateGroupRequest;
+import com.kt.setly.group.dto.GroupMemberResponse;
 import com.kt.setly.group.dto.GroupResponse;
 import com.kt.setly.group.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,6 +40,27 @@ public class GroupController {
         return ApiResponse.<Void>builder()
                 .success(true)
                 .message("Group member added successfully")
+                .build();
+    }
+
+    @GetMapping("/{groupId}/members")
+    @Operation(summary = "Get all members of a group")
+    public ApiResponse<List<GroupMemberResponse>> getGroupMembers(@PathVariable Long groupId) {
+        return ApiResponse.<List<GroupMemberResponse>>builder()
+                .success(true)
+                .message("Group members fetched successfully")
+                .data(groupService.getGroupMembers(groupId))
+                .build();
+    }
+
+    @DeleteMapping("/{groupId}/members/{userId}")
+    @Operation(summary = "Remove member from group")
+    public ApiResponse<Void> removeMember(@PathVariable Long groupId,
+                                          @PathVariable Long userId) {
+        groupService.removeMember(groupId, userId);
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .message("Group member removed successfully")
                 .build();
     }
 

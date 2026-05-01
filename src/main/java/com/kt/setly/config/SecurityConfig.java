@@ -1,18 +1,20 @@
 package com.kt.setly.config;
 
+import com.kt.setly.security.JwtAuthenticationFilter;
+import com.kt.setly.security.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenProvider tokenProvider) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
@@ -24,8 +26,8 @@ public class SecurityConfig {
                                 "/api/v1/users/register",
                                 "/api/v1/users/login"
                         ).permitAll()
-                        .anyRequest().permitAll())
-                .httpBasic(Customizer.withDefaults());
+                        .anyRequest().authenticated())
+                .addFilterBefore(new JwtAuthenticationFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -35,3 +37,5 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
+
+

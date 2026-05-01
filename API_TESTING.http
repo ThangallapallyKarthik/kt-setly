@@ -1,0 +1,287 @@
+### Setly API Testing Guide
+### Use this file with REST Client extensions (VS Code, Postman, etc.)
+
+### Variables
+@baseUrl = http://localhost:8088
+@token =
+
+###############################################
+### USER MANAGEMENT
+###############################################
+
+### 1. Register a new user - User 1
+POST {{baseUrl}}/api/v1/users/register
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "password123",
+  "displayName": "John Doe",
+  "defaultCurrency": "USD",
+  "locale": "en_US",
+  "countryCode": "US"
+}
+
+### 2. Register User 2
+POST {{baseUrl}}/api/v1/users/register
+Content-Type: application/json
+
+{
+  "email": "jane@example.com",
+  "password": "password123",
+  "displayName": "Jane Smith",
+  "defaultCurrency": "USD",
+  "locale": "en_US",
+  "countryCode": "US"
+}
+
+### 3. Register User 3
+POST {{baseUrl}}/api/v1/users/register
+Content-Type: application/json
+
+{
+  "email": "bob@example.com",
+  "password": "password123",
+  "displayName": "Bob Johnson",
+  "defaultCurrency": "USD",
+  "locale": "en_US",
+  "countryCode": "US"
+}
+
+### 4. Login User
+POST {{baseUrl}}/api/v1/users/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+### 5. Get User by ID
+GET {{baseUrl}}/api/v1/users/1
+Authorization: Bearer {{token}}
+
+### 6. Get All Users
+GET {{baseUrl}}/api/v1/users
+Authorization: Bearer {{token}}
+
+###############################################
+### GROUP MANAGEMENT
+###############################################
+
+### 7. Create Group (Trip)
+POST {{baseUrl}}/api/v1/groups
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Paris Trip 2024",
+  "description": "Summer vacation to Paris",
+  "groupType": "TRIP",
+  "baseCurrency": "EUR",
+  "createdByUserId": 1
+}
+
+### 8. Get Group by ID
+GET {{baseUrl}}/api/v1/groups/1
+Authorization: Bearer {{token}}
+
+### 9. Get All Groups
+GET {{baseUrl}}/api/v1/groups
+Authorization: Bearer {{token}}
+
+### 10. Add Member to Group (User 2)
+POST {{baseUrl}}/api/v1/groups/1/members
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "role": "MEMBER"
+}
+
+### 11. Add Another Member (User 3)
+POST {{baseUrl}}/api/v1/groups/1/members
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "userId": 3,
+  "role": "MEMBER"
+}
+
+### 12. Get Group Members
+GET {{baseUrl}}/api/v1/groups/1/members
+Authorization: Bearer {{token}}
+
+### 13. Remove Member from Group
+DELETE {{baseUrl}}/api/v1/groups/1/members/3
+Authorization: Bearer {{token}}
+
+###############################################
+### EXPENSE MANAGEMENT
+###############################################
+
+### 14. Create Expense - Restaurant (User 1 paid)
+POST {{baseUrl}}/api/v1/groups/1/expenses
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Restaurant Dinner",
+  "description": "Dinner at Italian restaurant",
+  "paidByUserId": 1,
+  "createdByUserId": 1,
+  "amount": 90.00,
+  "currency": "EUR",
+  "expenseDate": "2024-05-01",
+  "splitType": "EQUAL",
+  "participants": [
+    {
+      "userId": 1,
+      "owedAmount": 45.00
+    },
+    {
+      "userId": 2,
+      "owedAmount": 45.00
+    }
+  ]
+}
+
+### 15. Create Expense - Hotel (User 2 paid)
+POST {{baseUrl}}/api/v1/groups/1/expenses
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Hotel Accommodation",
+  "description": "3 nights at Hotel Paris",
+  "paidByUserId": 2,
+  "createdByUserId": 2,
+  "amount": 300.00,
+  "currency": "EUR",
+  "expenseDate": "2024-05-02",
+  "splitType": "EQUAL",
+  "participants": [
+    {
+      "userId": 1,
+      "owedAmount": 100.00
+    },
+    {
+      "userId": 2,
+      "owedAmount": 100.00
+    },
+    {
+      "userId": 3,
+      "owedAmount": 100.00
+    }
+  ]
+}
+
+### 16. Create Expense - Transportation
+POST {{baseUrl}}/api/v1/groups/1/expenses
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Taxi and Metro Passes",
+  "description": "Transportation around the city",
+  "paidByUserId": 3,
+  "createdByUserId": 3,
+  "amount": 60.00,
+  "currency": "EUR",
+  "expenseDate": "2024-05-03",
+  "splitType": "ITEMWISE",
+  "participants": [
+    {
+      "userId": 1,
+      "owedAmount": 20.00
+    },
+    {
+      "userId": 2,
+      "owedAmount": 20.00
+    },
+    {
+      "userId": 3,
+      "owedAmount": 20.00
+    }
+  ]
+}
+
+### 17. Get All Expenses
+GET {{baseUrl}}/api/v1/groups/1/expenses
+Authorization: Bearer {{token}}
+
+### 18. Get Expense by ID
+GET {{baseUrl}}/api/v1/groups/1/expenses/1
+Authorization: Bearer {{token}}
+
+### 19. Update Expense
+PUT {{baseUrl}}/api/v1/groups/1/expenses/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Updated Restaurant Dinner",
+  "amount": 100.00,
+  "participants": [
+    {
+      "userId": 1,
+      "owedAmount": 50.00
+    },
+    {
+      "userId": 2,
+      "owedAmount": 50.00
+    }
+  ]
+}
+
+### 20. Delete Expense
+DELETE {{baseUrl}}/api/v1/groups/1/expenses/1
+Authorization: Bearer {{token}}
+
+###############################################
+### BALANCE & SETTLEMENTS
+###############################################
+
+### 21. Get Group Balances
+GET {{baseUrl}}/api/v1/groups/1/balances
+Authorization: Bearer {{token}}
+
+### 22. Get Settlement Suggestions
+GET {{baseUrl}}/api/v1/groups/1/settlements/suggestions
+Authorization: Bearer {{token}}
+
+### 23. Create Settlement (User 1 pays User 2)
+POST {{baseUrl}}/api/v1/groups/1/settlements
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fromUserId": 1,
+  "toUserId": 2,
+  "amount": 70.00,
+  "currency": "EUR",
+  "paymentMethod": "BANK_TRANSFER",
+  "settlementDate": "2024-05-04"
+}
+
+### 24. Get All Settlements
+GET {{baseUrl}}/api/v1/groups/1/settlements
+Authorization: Bearer {{token}}
+
+###############################################
+### HEALTH CHECK
+###############################################
+
+### 25. Health Check
+GET {{baseUrl}}/health
+
+###############################################
+### API DOCUMENTATION
+###############################################
+
+### Access Swagger UI for interactive API documentation
+### Open in browser: http://localhost:8088/swagger-ui.html
+### OpenAPI JSON: http://localhost:8088/v3/api-docs
+

@@ -4,6 +4,7 @@ import com.kt.setly.common.exception.BadRequestException;
 import com.kt.setly.common.exception.ResourceNotFoundException;
 import com.kt.setly.group.dto.AddGroupMemberRequest;
 import com.kt.setly.group.dto.CreateGroupRequest;
+import com.kt.setly.group.dto.GroupMemberResponse;
 import com.kt.setly.group.dto.GroupResponse;
 import com.kt.setly.group.entity.*;
 import com.kt.setly.group.repository.ExpenseGroupRepository;
@@ -77,6 +78,26 @@ public class GroupService {
                 .build());
     }
 
+    public List<GroupMemberResponse> getGroupMembers(Long groupId) {
+        getGroupEntity(groupId); // Validate group exists
+        return groupMemberRepository.findByGroup_Id(groupId).stream()
+                .map(this::mapMember)
+                .toList();
+    }
+
+    public void removeMember(Long groupId, Long userId) {
+        getGroupEntity(groupId); // Validate group exists
+        
+        GroupMember member = groupMemberRepository.findByGroup_IdAndUser_Id(groupId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Member not found in group"));
+
+        if (member.getRole() == GroupMemberRole.OWNER) {
+            throw new BadRequestException("Cannot remove group owner");
+        }
+
+        groupMemberRepository.delete(member);
+    }
+
     public ExpenseGroup getGroupEntity(Long groupId) {
         return expenseGroupRepository.findById(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group not found for id: " + groupId));
@@ -96,6 +117,18 @@ public class GroupService {
                 group.getGroupType(),
                 group.getBaseCurrency(),
                 group.getCreatedBy().getId()
+        );
+    }
+
+    private GroupMemberResponse mapMember(GroupMember member) {
+        return new GroupMemberResponse(
+                member.getId(),
+                member.getGroup().getId(),
+                member.getUser().getId(),
+                member.getUser().getDisplayName(),
+                member.getUser().getEmail(),
+                member.getRole(),
+                member.getStatus()
         );
     }
 }

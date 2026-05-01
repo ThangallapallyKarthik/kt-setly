@@ -68,6 +68,62 @@ public class ExpenseService {
         return map(savedExpense, splits);
     }
 
+    @Transactional
+    public ExpenseResponse updateExpense(Long groupId, Long expenseId, UpdateExpenseRequest request) {
+        Expense expense = expenseRepository.findById(expenseId)
+                .filter(item -> item.getGroup().getId().equals(groupId))
+                .orElseThrow(() -> new ResourceNotFoundException("Expense not found for id: " + expenseId));
+
+        if (request.title() != null) {
+            expense.setTitle(request.title().trim());
+        }
+        if (request.description() != null) {
+            expense.setDescription(request.description());
+        }
+        if (request.amount() != null) {
+            expense.setAmount(request.amount());
+        }
+        if (request.currency() != null) {
+            expense.setCurrency(request.currency().trim().toUpperCase());
+        }
+        if (request.expenseDate() != null) {
+            expense.setExpenseDate(request.expenseDate());
+        }
+        if (request.splitType() != null) {
+            expense.setSplitType(request.splitType());
+        }
+
+        expense.setUpdatedAt(OffsetDateTime.now());
+        Expense updated = expenseRepository.save(expense);
+
+        // Update splits if provided
+        List<ExpenseSplit> splits = expenseSplitRepository.findByExpenseId(expenseId);
+        if (request.participants() != null && !request.participants().isEmpty()) {
+            validateSplitTotals(request.amount(), request.participants());
+            expenseSplitRepository.deleteAll(splits);
+            List<ExpenseSplit> newSplits = request.participants().stream()
+                    .map(participant -> ExpenseSplit.builder()
+                            .expense(updated)
+                            .user(userService.getUserEntity(participant.userId()))
+                            .owedAmount(participant.owedAmount())
+                            .build())
+                    .toList();
+            splits = expenseSplitRepository.saveAll(newSplits);
+        }
+
+        return map(updated, splits);
+    }
+
+    @Transactional
+    public void deleteExpense(Long groupId, Long expenseId) {
+        Expense expense = expenseRepository.findById(expenseId)
+                .filter(item -> item.getGroup().getId().equals(groupId))
+                .orElseThrow(() -> new ResourceNotFoundException("Expense not found for id: " + expenseId));
+
+        expenseSplitRepository.deleteByExpenseId(expenseId);
+        expenseRepository.delete(expense);
+    }
+
     public List<ExpenseResponse> getExpenses(Long groupId) {
         return expenseRepository.findByGroup_IdOrderByExpenseDateDescIdDesc(groupId).stream()
                 .map(expense -> map(expense, expenseSplitRepository.findByExpenseId(expense.getId())))
@@ -88,6 +144,16 @@ public class ExpenseService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         if (total.compareTo(request.amount()) != 0) {
+            throw new BadRequestException("Split total must exactly match expense amount");
+        }
+    }
+
+    private void validateSplitTotals(BigDecimal expenseAmount, List<ExpenseParticipantRequest> participants) {
+        BigDecimal total = participants.stream()
+                .map(ExpenseParticipantRequest::owedAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (total.compareTo(expenseAmount) != 0) {
             throw new BadRequestException("Split total must exactly match expense amount");
         }
     }

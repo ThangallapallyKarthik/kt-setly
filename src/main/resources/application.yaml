@@ -26,3 +26,9 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+app:
+  jwt:
+    secret: mySecretKeyForJWTTokenGenerationPleaseChangeThisInProduction12345678901234567890
+    expiration: 86400000
+
